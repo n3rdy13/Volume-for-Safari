@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Volume Boost</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <h1>Volume Boost</h1>
+
+  <label class="row big">
+    <span>Boost</span>
+    <input id="enabled" type="checkbox" role="switch">
+  </label>
+
+  <section class="block">
+    <div class="line"><span>Level</span><strong id="gainLabel"></strong></div>
+    <input id="gain" type="range" min="1" max="6" step="0.1">
+    <div class="presets">
+      <button type="button" data-g="1.5">1.5×</button>
+      <button type="button" data-g="2">2×</button>
+      <button type="button" data-g="3">3×</button>
+      <button type="button" data-g="4">4×</button>
+      <button type="button" data-g="6">6×</button>
+    </div>
+  </section>
+
+  <label class="row">
+    <span>Even out loudness<small>Helps in a noisy vehicle</small></span>
+    <input id="compress" type="checkbox" role="switch">
+  </label>
+
+  <p id="status" class="status"></p>
+  <p class="hint">Turn the phone volume all the way up first. If sound gets harsh, lower the level.</p>
+
+  <script src="popup.js"></script>
+</body>
+</html>

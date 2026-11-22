@@ -1,0 +1,86 @@
+:root {
+  color-scheme: light dark;
+  --bg: #ffffff;
+  --fg: #111418;
+  --muted: #5d6673;
+  --card: #f0f2f5;
+  --accent: #ff7a1a;
+  --warn: #b45309;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17191d;
+    --fg: #f2f4f7;
+    --muted: #9aa3af;
+    --card: #23262c;
+    --accent: #ff8a33;
+    --warn: #fbbf24;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 16px;
+  width: 320px;
+  max-width: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font: 16px/1.35 -apple-system, system-ui, sans-serif;
+}
+
+h1 { font-size: 19px; margin: 0 0 12px; }
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  background: var(--card);
+  border-radius: 12px;
+}
+
+.row.big { font-size: 20px; font-weight: 600; }
+.row small { display: block; font-size: 13px; font-weight: 400; color: var(--muted); }
+
+.row input[type="checkbox"] {
+  width: 26px;
+  height: 26px;
+  accent-color: var(--accent);
+  flex: none;
+}
+
+.block {
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  background: var(--card);
+  border-radius: 12px;
+}
+
+.line { display: flex; justify-content: space-between; margin-bottom: 8px; }
+
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+
+.presets { display: flex; gap: 6px; margin-top: 10px; }
+
+.presets button {
+  flex: 1;
+  min-height: 44px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+  font-weight: 600;
+}
+
+.presets button.active { background: var(--accent); color: #111418; }
+
+.status { min-height: 2.6em; margin: 4px 2px 8px; font-size: 14px; }
+.status.warn { color: var(--warn); }
+
+.hint { margin: 0 2px; font-size: 12px; color: var(--muted); }

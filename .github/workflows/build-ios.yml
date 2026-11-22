@@ -1,0 +1,91 @@
+name: Build unsigned IPA
+
+# Builds the Safari extension into an iOS app and uploads an UNSIGNED .ipa.
+# Download it from the run's "Artifacts" section and sign/install it the same
+# way you do your other apps (ESign, Sideloadly, etc.).
+
+on:
+  workflow_dispatch:
+    inputs:
+      bundle_id:
+        description: "App bundle ID (the extension becomes <bundle id>.Extension)"
+        required: false
+        default: "com.n3rdy13.volumeboost"
+  push:
+    branches: [main]
+
+env:
+  APP_NAME: VolumeBoost
+  DEFAULT_BUNDLE_ID: com.n3rdy13.volumeboost
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: |
+          xcodebuild -version
+          xcrun --find safari-web-extension-converter
+
+      - name: Generate Xcode project from the extension
+        env:
+          INPUT_BUNDLE_ID: ${{ inputs.bundle_id }}
+        run: |
+          BUNDLE_ID="${INPUT_BUNDLE_ID:-$DEFAULT_BUNDLE_ID}"
+          echo "Bundle ID: $BUNDLE_ID"
+          xcrun safari-web-extension-converter extension \
+            --project-location build \
+            --app-name "$APP_NAME" \
+            --bundle-identifier "$BUNDLE_ID" \
+            --swift --ios-only --copy-resources \
+            --no-open --no-prompt --force
+          find build -maxdepth 3 -name '*.xcodeproj'
+
+      - name: Pick the iOS app scheme
+        id: scheme
+        run: |
+          PROJ=$(find build -maxdepth 3 -name '*.xcodeproj' | head -1)
+          xcodebuild -list -project "$PROJ" -json > build/schemes.json
+          cat build/schemes.json
+          SCHEME=$(python3 - <<'PY'
+          import json
+          schemes = json.load(open("build/schemes.json"))["project"]["schemes"]
+          apps = [s for s in schemes if not s.lower().endswith("extension")]
+          ios = [s for s in apps if "ios" in s.lower()]
+          print((ios or apps or schemes)[0])
+          PY
+          )
+          echo "proj=$PROJ" >> "$GITHUB_OUTPUT"
+          echo "scheme=$SCHEME" >> "$GITHUB_OUTPUT"
+          echo "Using scheme: $SCHEME"
+
+      - name: Build (unsigned)
+        run: |
+          xcodebuild \
+            -project "${{ steps.scheme.outputs.proj }}" \
+            -scheme "${{ steps.scheme.outputs.scheme }}" \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build/dd \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" DEVELOPMENT_TEAM="" \
+            build
+
+      - name: Package IPA
+        run: |
+          APP=$(find build/dd/Build/Products -maxdepth 2 -name '*.app' | head -1)
+          echo "App bundle: $APP"
+          ls "$APP/PlugIns" || true
+          rm -rf Payload && mkdir Payload
+          cp -R "$APP" Payload/
+          zip -qry VolumeBoost-unsigned.ipa Payload
+          ls -lh VolumeBoost-unsigned.ipa
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: VolumeBoost-unsigned-ipa
+          path: VolumeBoost-unsigned.ipa
+          if-no-files-found: error
